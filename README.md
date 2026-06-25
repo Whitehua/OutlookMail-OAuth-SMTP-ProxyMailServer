@@ -9,30 +9,37 @@
 
 这意味着：
 
-旧版系统（如一些企业内部的 ERP、遗留的 C#/.NET 4.0/Java 程序）
+- 旧版系统（如一些企业内部的 ERP、遗留的 C#/.NET 4.0/Java 程序）
 
-硬件设备（如多功能打印机的 Scan-to-Email 功能）
+- 硬件设备（如多功能打印机的 Scan-to-Email 功能）
 
-不支持现代化认证的客户端
+- 不支持现代化认证的客户端
 
 现在都无法直接发送邮件。
 
 该项目通过在本地（或局域网服务器上）搭建一个代理服务：
+
+```
+[ 传统客户端/设备 ] --(发送传统SMTP邮件)--> [ mail_api.py (本地SMTP服务器) ]
+                                                   |
+                                            (调用微软 Graph API)
+                                                   v
+[ get_refresh_token.py (负责OAuth2授权) ] --> [ 微软云端服务 (Office 365) ]
+```
+
 # ✨ 主要特性
 
-协议网关：在本地提供标准的 SMTP（默认端口 1025）和 IMAP（默认端口 1143）服务。
+- 协议网关：在本地提供标准的 SMTP（默认端口 1025）。
 
-OAuth2 令牌管理：自动处理微软 OAuth2 授权码流程，负责 Refresh Token 的本地持久化存储和自动刷新（Access Token）。
+- OAuth2 令牌管理：自动处理微软 OAuth2 授权码流程，负责 Refresh Token 的本地持久化存储和自动刷新（Access Token）。
 
-无缝对接：旧版客户端仅需将邮件服务器地址改为本地 IP，即可无需修改代码重构。
+- 无缝对接：旧版客户端仅需将邮件服务器地址改为本地 IP，即可无需修改代码重构。
 
-多账户支持：支持同时配置和代理多个 Outlook/Office 365 邮箱账户。
-
-安全性：本地通信可绑定 127.0.0.1 仅允许本机访问，亦可配置局域网 TLS 加密。
+- 安全性：本地通信可绑定 127.0.0.1 仅允许本机访问，亦可配置局域网 TLS 加密。
 
 # 🚀 快速开始
 
-准备工作：在 Azure 注册应用程序
+## 准备工作：在 Azure 注册应用程序
 
 为了代表你的 Outlook 账户发送/接收邮件，你需要在微软 Azure 门户中注册一个应用（免费）。
 
@@ -54,13 +61,14 @@ OAuth2 令牌管理：自动处理微软 OAuth2 授权码流程，负责 Refresh
 
 在 API 权限 中，添加以下 Microsoft Graph / Office 365 Exchange Online 权限（委托的权限）：
 
-offline_access (必须，用于获取刷新令牌)
+- offline_access (必须，用于获取刷新令牌)
 
-SMTP.Send (用于发送邮件)
+- SMTP.Send (用于发送邮件)
 
-IMAP.AccessAsUser.All (如果需要接收邮件)
+- IMAP.AccessAsUser.All (如果需要接收邮件)
 
-POP.AccessAsUser.All (可选)
+- POP.AccessAsUser.All (可选)
+
 ## 📦 安装与配置
 
 步骤 1： 克隆仓库与安装依赖
@@ -127,59 +135,15 @@ python proxy_server.py
 
 SMTP 代理已在 127.0.0.1:1025 启动
 
-IMAP 代理已在 127.0.0.1:1143 启动
-
 # ⚙️ 客户端配置指南
 
 现在你可以修改你原本的旧版客户端/打印机/系统设置：
 
-配置项
+|配置项|SMTP 服务器|SMTP 端口|IMAP 服务器|IMAP 端口|SSL/TLS 选项|用户名/邮箱|密码|
+|-|-|-|-|-|-|-|-|
+|原配置 (不可用)|smtp.office365.com|587|outlook.office365.com|993|STARTTLS / SSL|your-email@outlook.com|你的微软账号密码|
+|新配置 (通过代理)|127.0.0.1 (或代理服务器的局域网 IP)|1025|127.0.0.1|1143|无/None (本地代理通常无需加密，若跨机器可配置本地自签名证书)|your-email@outlook.com|local_secure_password_for_client (在 config.txt 里设置的本地密码)|
 
-原配置 (不可用)
-
-新配置 (通过代理)
-
-SMTP 服务器
-
-smtp.office365.com
-
-127.0.0.1 (或代理服务器的局域网 IP)
-
-SMTP 端口
-
-587
-
-1025
-
-IMAP 服务器
-
-outlook.office365.com
-
-127.0.0.1
-
-IMAP 端口
-
-993
-
-1143
-
-SSL/TLS 选项
-
-STARTTLS / SSL
-
-无/None (本地代理通常无需加密，若跨机器可配置本地自签名证书)
-
-用户名/邮箱
-
-your-email@outlook.com
-
-your-email@outlook.com
-
-密码
-
-你的微软账号密码
-
-local_secure_password_for_client (在 config.json 里设置的本地密码)
 
 # ❓ 常见问题 (FAQ)
 
