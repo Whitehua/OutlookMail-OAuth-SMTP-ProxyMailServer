@@ -80,37 +80,16 @@ pip install -r requirements.txt
 
 步骤 2： 编辑配置文件
 
-复制一份配置模板并进行修改：
-
-cp config.example.json config.json
-
-
-编辑 config.json：
+编辑 config.txt：
 ```
-{
-  "server": {
-    "bind_address": "127.0.0.1",
-    "smtp_port": 1025,
-    "imap_port": 1143,
-    "debug": true
-  },
-  "oauth2": {
-    "client_id": "YOUR_AZURE_CLIENT_ID",
-    "client_secret": "YOUR_AZURE_CLIENT_SECRET_IF_APPLICABLE",
-    "redirect_uri": "http://localhost:8080/callback",
-    "scopes": [
-      "offline_access",
-      "[https://outlook.office.com/SMTP.Send](https://outlook.office.com/SMTP.Send)",
-      "[https://outlook.office.com/IMAP.AccessAsUser.All](https://outlook.office.com/IMAP.AccessAsUser.All)"
-    ]
-  },
-  "accounts": [
-    {
-      "email": "your-email@outlook.com",
-      "local_password": "local_secure_password_for_client"
-    }
-  ]
-}
+[microsoft]
+client_id = 
+redirect_uri = http://localhost:8000
+
+[tokens]
+refresh_token = 
+access_token =
+expires_at = 
 ```
 
 注意：local_password 是你为旧版邮件客户端设置的本地连接密码。客户端连接本地代理时使用此密码进行校验，验证成功后，代理服务器会使用 OAuth2 令牌与微软服务器通信。
@@ -119,16 +98,16 @@ cp config.example.json config.json
 
 首次运行需要进行一次交互式授权以获取 Refresh Token：
 
-python proxy_server.py --auth
+python get_refresh_token.py
 
 
-程序会输出一个微软登录 URL。将该 URL 复制到浏览器打开，登录你的 Outlook 邮箱并同意授权。授权成功后，页面会重定向到 http://localhost:8080/callback，本地程序捕获到授权码后将自动保存 Token 至本地加密的 tokens.json 中。
+程序会输出一个微软登录 URL。将该 URL 复制到浏览器打开，登录你的 Outlook 邮箱并同意授权。授权成功后，页面会重定向到 http://localhost:8080/callback，本地程序捕获到授权码后将自动保存 Token 至本地加密的 config.txt 中。
 
 🏃 步骤 4：运行代理服务器
 
 运行以下命令正式启动本地代理服务：
 
-python proxy_server.py
+python mail_api.py
 
 
 终端将显示服务已成功绑定本地端口：
